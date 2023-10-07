@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<header>
+    <title>canvas</title>
+    <style>
+        .bg {
+            width: 300px;
+            height: 300px;
+            background-color: rgba(250, 235, 215, 0.8);
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</header>
+
+<body>
+    <div class="bg">
+        <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+    <script>
+        const lineWidth = 20
+        let startAngle = Math.PI * 0.5
+        let endAngle = Math.PI * (2 + 0.5)
+        const width = 300
+        const height = 300
+        const radius = width / 2
+        const canvasRadius = width / 2 - lineWidth
+
+        const bgIconRadius = 20
+        const iconRadius = 10
+
+        let isFull = true
+
+        function draw(angle) {
+            // console.log(angle);
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, width, height)
+            ctx.beginPath();
+            const grd = ctx.createLinearGradient(radius, 0, 0, height);
+            grd.addColorStop(0, "green");
+            grd.addColorStop(0.5, "yellow");
+            grd.addColorStop(1, "red");
+
+            ctx.strokeStyle = grd;
+            ctx.lineCap = "round";
+            ctx.lineWidth = lineWidth;
+            ctx.arc(radius, radius, canvasRadius, startAngle, angle, false);
+            ctx.stroke(); // 画圆
+            ctx.closePath();
+            ctx.save()
+
+            if (!isFull) {
+            const bgIconX = radius + Math.cos(angle) * (radius - bgIconRadius)
+            const bgIconY = radius + Math.sin(angle) * (radius - bgIconRadius) 
+
+            ctx.beginPath();
+            ctx.fillStyle = '#fff';
+            ctx.arc(bgIconX, bgIconY, bgIconRadius, 0, Math.PI * 2, false);
+            ctx.fill(); // 画圆
+            ctx.closePath();
+           
+            ctx.save()
+            //  ctx.restore();
+            }
+            const last = isFull && isFullScore &&  endAngle-angle - 0.001 * Math.PI < 0
+
+            const iconX = radius + Math.cos(angle) * (radius - lineWidth)
+            const iconY = radius + Math.sin(angle) * (radius - lineWidth) 
+            ctx.beginPath();
+            ctx.fillStyle = last ? 'transparent' : 'red';
+            ctx.arc(iconX, iconY, iconRadius, 0, Math.PI * 2, false);
+            ctx.fill(); // 画圆
+            ctx.closePath();
+            ctx.restore();
+            ctx.save()
+           
+           
+        }
+
+        let animationFrame = 0
+        function animate(startAngle) {
+           let angle = startAngle + 0.01 * Math.PI
+           if (angle > endAngle) {
+            window.cancelAnimationFrame(animationFrame)
+            return 
+           }
+           draw(angle)
+           animationFrame = window.requestAnimationFrame(() => animate(angle))
+        }
+
+       
+
+        // full 根据分数画个整圆
+       function start(option = { score: 3.5, totalScore: 5, full: false}) {
+        isFull = option.full
+        isFullScore = option.totalScore - option.score === 0
+        if (option.full) {
+            startAngle = Math.PI * 0.5
+         endAngle = startAngle + (option.score / option.totalScore) * Math.PI * 2 
+         
+        } else {
+            startAngle = Math.PI * 0.75
+         endAngle = startAngle + (option.score / option.totalScore) * Math.PI * 1.5
+        }
+        // console.log('endAngle', endAngle);
+        // if (option.score === 0) {
+        //     endAngle =  startAngle + 0.01 * Math.PI
+        // }
+        animate(startAngle)
+        }
+        start()
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<header>
+    <title>canvas</title>
+    <style>
+        .bg {
+            width: 300px;
+            height: 300px;
+            background-color: rgba(250, 235, 215, 0.8);
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</header>
+
+<body>
+    <div class="bg">
+        <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+    <script>
+        const lineWidth = 20
+        const startAngle = Math.PI * 0.75
+        const endAngle = Math.PI * (2 + 0.25)
+        const width = 300
+        const height = 300
+        const radius = width / 2
+        const canvasRadius = width / 2 - lineWidth
+
+        const bgIconRadius = 20
+        const iconRadius = 10
+
+        function draw(angle) {
+            // console.log(angle);
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, width, height)
+            ctx.beginPath();
+            const grd = ctx.createLinearGradient(radius, 0, 0, height);
+            grd.addColorStop(0, "green");
+            grd.addColorStop(0.5, "yellow");
+            grd.addColorStop(1, "red");
+
+            ctx.strokeStyle = grd;
+            ctx.lineCap = "round";
+            ctx.lineWidth = lineWidth;
+            ctx.arc(radius, radius, canvasRadius, startAngle, angle, false);
+            ctx.stroke(); // 画圆
+            ctx.closePath();
+            ctx.save()
+
+            const bgIconX = radius + Math.cos(angle) * (radius - bgIconRadius)
+            const bgIconY = radius + Math.sin(angle) * (radius - bgIconRadius) 
+
+            ctx.beginPath();
+            ctx.fillStyle = '#fff';
+            ctx.arc(bgIconX, bgIconY, bgIconRadius, 0, Math.PI * 2, false);
+            ctx.fill(); // 画圆
+            ctx.closePath();
+           
+            ctx.save()
+             ctx.restore();
+
+            const iconX = radius + Math.cos(angle) * (radius - lineWidth)
+            const iconY = radius + Math.sin(angle) * (radius - lineWidth) 
+
+            ctx.beginPath();
+            ctx.fillStyle = 'red';
+            ctx.arc(iconX, iconY, iconRadius, 0, Math.PI * 2, false);
+            ctx.fill(); // 画圆
+            ctx.closePath();
+            ctx.save()
+            // ctx.restore();
+        }
+        let totaAngle = 1.5 * Math.PI
+        let animationFrame = 0
+        function animate(startAngle) {
+           let angle = startAngle + 0.01 * Math.PI
+           window.cancelAnimationFrame(animationFrame)
+           if (angle >= endAngle) {
+            return 
+           }
+           draw(angle)
+           animationFrame = window.requestAnimationFrame(() => animate(angle))
+        }
+
+        animate(startAngle)
+    </script>
+</body>
+
+</html>
