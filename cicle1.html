@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="format-detection" content="telephone=no,email=no" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Cache" content="no-cache" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title></title>
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        /* background-color: aqua; */
+        /* border: 1px solid red; */
+        box-sizing: border-box;
+      }
+      #canvas {
+        padding: 0;
+        margin: 0;
+        width: 6.72rem;
+        height: 6.72rem;
+        /* width: 100%;
+        height: 100%; */
+        transform-origin: center;
+        pointer-events: none;
+        background-color: blueviolet;
+      }
+    </style>
+    <script type="text/javascript">
+      function flexible(win, doc) {
+        if (!win.addEventListener) return;
+        function setFont() {
+          var html = document.documentElement;
+          html.style.fontSize = 100 * (html.clientWidth / 750) + "px";
+        }
+        setFont();
+        setTimeout(function () {
+          setFont();
+        }, 300);
+        doc.addEventListener("DOMContentLoaded", setFont, false);
+        win.addEventListener("resize", setFont, false);
+        win.addEventListener("load", setFont, false);
+      }
+      flexible(window, document);
+      document.addEventListener(
+        "touchmove",
+        (e) => {
+          e.preventDefalut && e.preventDefalut();
+        },
+        { passive: false }
+      );
+    </script>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const devicePixelRatio = window.devicePixelRatio;
+      let rate = 1;
+      let canvas = null;
+      let ctx = null;
+      let raidus = 0;
+      let totalScore = 5;
+      let score = 0;
+
+      // 画圆点
+      function drawCircle(angle, fillStyle, dotRadius, lineRadius) {
+        const iconX = radius + Math.cos(angle) * lineRadius;
+        const iconY = radius + Math.sin(angle) * lineRadius;
+        ctx.beginPath();
+        ctx.fillStyle = fillStyle;
+        ctx.arc(iconX, iconY, dotRadius, 0, Math.PI * 2, false);
+        ctx.fill(); // 画圆
+        ctx.closePath();
+        ctx.restore();
+        ctx.save();
+      }
+      // 画圆环
+      function drawCycle(
+        strokeStyle,
+        lineCap,
+        lineWidth,
+        center,
+        canvasRadius,
+        startAngle,
+        angle
+      ) {
+        ctx.beginPath();
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineCap = lineCap;
+        ctx.lineWidth = lineWidth;
+        ctx.arc(center, center, canvasRadius, startAngle, angle, false);
+        ctx.stroke(); // 画圆
+        ctx.closePath();
+        ctx.restore();
+        ctx.save();
+      }
+
+      // 画3/4圆的
+      function startHalf() {
+        let animationFrame = 0;
+        const { width, height } = canvas.getBoundingClientRect();
+        const bgImage = new Image();
+        bgImage.src = "https://img.leoao.com/xixi/1692856708348_s8ip6fbhg.png";
+        // bgImage.width = width / devicePixelRatio;
+        // bgImage.height = height / devicePixelRatio;
+        bgImage.onload = function () {
+          window.cancelAnimationFrame(animationFrame);
+          animate(startAngle);
+        };
+        const lineWidth = 18 * rate;
+        const bgIconRadius = 18 * rate;
+        const iconRadius = 12 * rate;
+        let startAngle = Math.PI * 0.75;
+        let endAngle = startAngle + (score / totalScore) * Math.PI * 1.5;
+        const grd = ctx.createLinearGradient(radius, 0, 0, height);
+        grd.addColorStop(1, "rgba(255, 203, 44, 1)");
+        grd.addColorStop(0.5, "rgba(255, 179, 44, 1)");
+        grd.addColorStop(0, "rgba(255, 127, 44, 1)");
+
+        function animate(angle) {
+          angle = angle + 0.01 * Math.PI;
+          if (angle > endAngle) {
+            if (score === 0) {
+              // 清除画布
+              ctx.clearRect(
+                0,
+                0,
+                width * devicePixelRatio,
+                height * devicePixelRatio
+              );
+              // 画背景
+              ctx.drawImage(bgImage, 0, 0, width, height);
+              // 画大圆点
+              drawCircle(angle, "#ffffff", bgIconRadius, radius - bgIconRadius);
+              // 画小圆点
+              drawCircle(angle, "#ff8800", iconRadius, radius - bgIconRadius);
+            }
+            window.cancelAnimationFrame(animationFrame);
+            return;
+          }
+          // 清除画布
+          ctx.clearRect(
+            0,
+            0,
+            width * devicePixelRatio,
+            height * devicePixelRatio
+          );
+          // 画背景
+          ctx.drawImage(bgImage, 0, 0, width, height);
+          // 画彩色圆
+          drawCycle(
+            grd,
+            "butt",
+            lineWidth,
+            radius,
+            radius - bgIconRadius,
+            startAngle,
+            angle
+          );
+          // 画大圆点
+          drawCircle(angle, "#ffffff", bgIconRadius, radius - bgIconRadius);
+          // 画小圆点
+          drawCircle(angle, "#ff8800", iconRadius, radius - bgIconRadius);
+          animationFrame = window.requestAnimationFrame(() => animate(angle));
+        }
+        animate(startAngle);
+      }
+
+      function startFull() {
+        const { width, height } = canvas.getBoundingClientRect();
+        let startAngle = Math.PI * 0.5;
+        let endAngle = startAngle + (score / totalScore) * Math.PI * 2;
+        // 小圆点半径
+        const dotRadius = 8 * rate;
+        // 背景圆线宽
+        const bgLineWidth = 16 * rate;
+        // 彩色圆线宽
+        const lineWidth = 20 * rate;
+        let animationFrame = 0;
+        function animate(angle) {
+          angle = angle + 0.01 * Math.PI;
+          if (angle > endAngle) {
+            // 这里没分是展示点还是不展示
+            if (score === 0) {
+              // 清除背景
+              ctx.clearRect(
+                0,
+                0,
+                width * devicePixelRatio,
+                height * devicePixelRatio
+              );
+              // 画背景圆
+              drawCycle(
+                "#f5f5f5",
+                "butt",
+                bgLineWidth,
+                radius,
+                radius - lineWidth,
+                0,
+                Math.PI * 2
+              );
+              drawCircle(angle, "#ff8800", dotRadius, radius - lineWidth);
+            }
+            if (totalScore === score) {
+              drawCircle(endAngle, "#ff8800", dotRadius, radius - lineWidth);
+            }
+            window.cancelAnimationFrame(animationFrame);
+            return;
+          }
+          // 清除背景
+          ctx.clearRect(
+            0,
+            0,
+            width * devicePixelRatio,
+            height * devicePixelRatio
+          );
+          // 画背景圆
+          drawCycle(
+            "#f5f5f5",
+            "butt",
+            bgLineWidth,
+            radius,
+            radius - lineWidth,
+            0,
+            Math.PI * 2
+          );
+          // 画彩色圆
+          drawCycle(
+            "#ff8800",
+            "round",
+            lineWidth,
+            radius,
+            radius - lineWidth,
+            startAngle,
+            angle
+          );
+          // 画圆
+          drawCircle(angle, "#ffffff", dotRadius, radius - lineWidth);
+          animationFrame = window.requestAnimationFrame(() => animate(angle));
+        }
+        animate(startAngle);
+      }
+
+      function processMessage(e) {
+        // const { storeScore, type } = JSON.parse(e.data);
+        score = 4.5;
+        type = "half";
+        rate = (document.documentElement.clientWidth / 750) * devicePixelRatio;
+        canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        const { width, height } = canvas.getBoundingClientRect();
+        radius = width / 2;
+        // 适配高清屏
+        canvas.width = width * devicePixelRatio;
+        canvas.height = height * devicePixelRatio;
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+
+        // alert(e.data);
+        // alert(`clientWidth : ${document.documentElement.clientWidth}`);
+        // alert(`clientHeight : ${document.documentElement.clientHeight}`)
+
+        if (type === "full") {
+          startFull();
+        } else {
+          // alert('--hhh--');
+          startHalf();
+          // bgImage.onload = () => {
+          //   startHalf();
+          // };
+        }
+      }
+      processMessage();
+      // processMessage(JSON.stringify({ data: { storeScore: 4.5, type: 'full' } }));
+      // window.document.addEventListener('message', processMessage);
+      // window.addEventListener('message', processMessage);
+      // window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOADED' }));
+    </script>
+  </body>
+</html>
